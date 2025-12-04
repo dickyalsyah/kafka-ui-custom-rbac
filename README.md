@@ -1,27 +1,3 @@
-![UI for Apache Kafka logo](documentation/images/kafka-ui-logo.png) UI for Apache Kafka&nbsp;
-------------------
-#### Versatile, fast and lightweight web UI for managing Apache Kafka® clusters. Built by developers, for developers.
-<br/>
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/dickyalsyah/kafka-ui-custom-rbac/blob/master/LICENSE)
-![UI for Apache Kafka Price Free](documentation/images/free-open-source.svg)
-[![Release version](https://img.shields.io/github/v/release/provectus/kafka-ui)](https://github.com/provectus/kafka-ui/releases)
-[![Chat with us](https://img.shields.io/discord/897805035122077716)](https://discord.gg/4DWzD7pGE5)
-[![Docker pulls](https://img.shields.io/docker/pulls/provectuslabs/kafka-ui)](https://hub.docker.com/r/provectuslabs/kafka-ui)
-
-<p align="center">
-    <a href="https://docs.kafka-ui.provectus.io/">DOCS</a> • 
-    <a href="https://docs.kafka-ui.provectus.io/configuration/quick-start">QUICK START</a> • 
-    <a href="https://discord.gg/4DWzD7pGE5">COMMUNITY DISCORD</a>
-    <br/>
-    <a href="https://aws.amazon.com/marketplace/pp/prodview-ogtt5hfhzkq6a">AWS Marketplace</a>  •
-    <a href="https://www.producthunt.com/products/ui-for-apache-kafka/reviews/new">ProductHunt</a>
-</p>
-
-<p align="center">
-  <img src="https://repobeats.axiom.co/api/embed/2e8a7c2d711af9daddd34f9791143e7554c35d0f.svg" />
-</p>
-
 #### UI for Apache Kafka is a free, open-source web UI to monitor and manage Apache Kafka clusters.
 
 UI for Apache Kafka is a simple tool that makes your data flows observable, helps find and troubleshoot issues faster and deliver optimal performance. Its lightweight dashboard makes it easy to track key metrics of your Kafka clusters - Brokers, Topics, Partitions, Production, and Consumption.
