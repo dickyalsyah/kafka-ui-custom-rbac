@@ -39,7 +39,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/provectus/kafka-ui.git</connection>
 		<developerConnection>scm:git:ssh://github.com:provectus/kafka-ui.git</developerConnection>
-		<url>https://github.com/provectus/kafka-ui</url>
+		<url>https://github.com/dickyalsyah/kafka-ui-custom-rbac</url>
 	</scm>
 	<groupId>com.provectus</groupId>
 	<artifactId>kafka-ui-serde-api</artifactId>

@@ -77,7 +77,7 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder(toBuilder = true)
-  @ToString(exclude = {"password", "keystorePassword"})
+  @ToString(exclude = { "password", "keystorePassword" })
   public static class ConnectCluster {
     String name;
     String address;
@@ -88,14 +88,14 @@ public class ClustersProperties {
   }
 
   @Data
-  @ToString(exclude = {"password"})
+  @ToString(exclude = { "password" })
   public static class SchemaRegistryAuth {
     String username;
     String password;
   }
 
   @Data
-  @ToString(exclude = {"truststorePassword"})
+  @ToString(exclude = { "truststorePassword" })
   public static class TruststoreConfig {
     String truststoreLocation;
     String truststorePassword;
@@ -121,7 +121,7 @@ public class ClustersProperties {
   @Data
   @NoArgsConstructor
   @AllArgsConstructor
-  @ToString(exclude = {"keystorePassword"})
+  @ToString(exclude = { "keystorePassword" })
   public static class KeystoreConfig {
     String keystoreLocation;
     String keystorePassword;
@@ -132,13 +132,21 @@ public class ClustersProperties {
     Type type;
     List<String> fields;
     String fieldsNamePattern;
-    List<String> maskingCharsReplacement; //used when type=MASK
-    String replacement; //used when type=REPLACE
+    List<String> maskingCharsReplacement; // used when type=MASK
+    String replacement; // used when type=REPLACE
     String topicKeysPattern;
     String topicValuesPattern;
 
     public enum Type {
       REMOVE, MASK, REPLACE
+    }
+
+    public List<String> getFields() {
+      return fields;
+    }
+
+    public String getFieldsNamePattern() {
+      return fieldsNamePattern;
     }
   }
 
@@ -155,7 +163,7 @@ public class ClustersProperties {
 
     public enum LogLevel {
       ALL,
-      ALTER_ONLY //default
+      ALTER_ONLY // default
     }
   }
 
@@ -183,7 +191,7 @@ public class ClustersProperties {
   }
 
   private Map<String, Object> flattenClusterProperties(@Nullable String prefix,
-                                                       @Nullable Map<String, Object> propertiesMap) {
+      @Nullable Map<String, Object> propertiesMap) {
     Map<String, Object> flattened = new HashMap<>();
     if (propertiesMap != null) {
       propertiesMap.forEach((k, v) -> {

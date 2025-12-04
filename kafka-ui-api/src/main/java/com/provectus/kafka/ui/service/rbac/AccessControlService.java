@@ -65,10 +65,14 @@ public class AccessControlService {
   @PostConstruct
   public void init() {
     if (CollectionUtils.isEmpty(properties.getRoles())) {
-      log.trace("No roles provided, disabling RBAC");
+      log.info("No roles provided, disabling RBAC");
       return;
     }
     rbacEnabled = true;
+
+    log.info("RBAC enabled with roles: {}",
+        properties.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
+    properties.getRoles().forEach(r -> log.info("Role '{}' access to clusters: {}", r.getName(), r.getClusters()));
 
     this.oauthExtractors = properties.getRoles()
         .stream()
@@ -113,18 +117,17 @@ public class AccessControlService {
 
     return getUser()
         .doOnNext(user -> {
-          boolean accessGranted =
-              isApplicationConfigAccessible(context, user)
-                  && isClusterAccessible(context, user)
-                  && isClusterConfigAccessible(context, user)
-                  && isTopicAccessible(context, user)
-                  && isConsumerGroupAccessible(context, user)
-                  && isConnectAccessible(context, user)
-                  && isConnectorAccessible(context, user) // TODO connector selectors
-                  && isSchemaAccessible(context, user)
-                  && isKsqlAccessible(context, user)
-                  && isAclAccessible(context, user)
-                  && isAuditAccessible(context, user);
+          boolean accessGranted = isApplicationConfigAccessible(context, user)
+              && isClusterAccessible(context, user)
+              && isClusterConfigAccessible(context, user)
+              && isTopicAccessible(context, user)
+              && isConsumerGroupAccessible(context, user)
+              && isConnectAccessible(context, user)
+              && isConnectorAccessible(context, user) // TODO connector selectors
+              && isSchemaAccessible(context, user)
+              && isKsqlAccessible(context, user)
+              && isAclAccessible(context, user)
+              && isAuditAccessible(context, user);
 
           if (!accessGranted) {
             throw new AccessDeniedException(ACCESS_DENIED);
@@ -136,9 +139,25 @@ public class AccessControlService {
   public Mono<AuthenticatedUser> getUser() {
     return ReactiveSecurityContextHolder.getContext()
         .map(SecurityContext::getAuthentication)
-        .filter(authentication -> authentication.getPrincipal() instanceof RbacUser)
-        .map(authentication -> ((RbacUser) authentication.getPrincipal()))
-        .map(user -> new AuthenticatedUser(user.name(), user.groups()));
+        .doOnNext(auth -> log.debug("Authentication principal class: {}", auth.getPrincipal().getClass().getName()))
+        .map(auth -> {
+          Object principal = auth.getPrincipal();
+          if (principal instanceof RbacUser rbacUser) {
+            return new AuthenticatedUser(rbacUser.name(), rbacUser.groups());
+          } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails userDetails) {
+            log.debug("Principal is not RbacUser, falling back to UserDetails mapping");
+            return new AuthenticatedUser(userDetails.getUsername(),
+                userDetails.getAuthorities().stream()
+                    .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                    .collect(Collectors.toSet()));
+          }
+          return null;
+        })
+        .filter(Objects::nonNull)
+        .map(user -> {
+          log.debug("Authenticated User: {}, Groups: {}", user.principal(), user.groups());
+          return user;
+        });
   }
 
   public boolean isApplicationConfigAccessible(AccessContext context, AuthenticatedUser user) {
@@ -162,10 +181,20 @@ public class AccessControlService {
 
     Assert.isTrue(StringUtils.isNotEmpty(context.getCluster()), "cluster value is empty");
 
-    return properties.getRoles()
+    boolean accessible = properties.getRoles()
         .stream()
         .filter(filterRole(user))
         .anyMatch(filterCluster(context.getCluster()));
+
+    if (!accessible) {
+      log.debug("Cluster '{}' access DENIED for user '{}'. User Roles: {}. Configured Roles for Cluster: {}",
+          context.getCluster(), user.principal(), user.groups(),
+          properties.getRoles().stream()
+              .filter(r -> r.getClusters().contains(context.getCluster()))
+              .map(Role::getName)
+              .collect(Collectors.toList()));
+    }
+    return accessible;
   }
 
   public Mono<Boolean> isClusterAccessible(ClusterDTO cluster) {
@@ -225,15 +254,14 @@ public class AccessControlService {
     return getUser()
         .map(user -> topics.stream()
             .filter(topic -> {
-                  var accessContext = AccessContext
-                      .builder()
-                      .cluster(clusterName)
-                      .topic(topic.getName())
-                      .topicActions(TopicAction.VIEW)
-                      .build();
-                  return isTopicAccessible(accessContext, user);
-                }
-            ).toList());
+              var accessContext = AccessContext
+                  .builder()
+                  .cluster(clusterName)
+                  .topic(topic.getName())
+                  .topicActions(TopicAction.VIEW)
+                  .build();
+              return isTopicAccessible(accessContext, user);
+            }).toList());
   }
 
   private boolean isConsumerGroupAccessible(AccessContext context, AuthenticatedUser user) {
@@ -430,7 +458,7 @@ public class AccessControlService {
   }
 
   private boolean isAccessible(Resource resource, @Nullable String resourceValue,
-                               AuthenticatedUser user, AccessContext context, Set<String> requiredActions) {
+      AuthenticatedUser user, AccessContext context, Set<String> requiredActions) {
     Set<String> grantedActions = properties.getRoles()
         .stream()
         .filter(filterRole(user))
